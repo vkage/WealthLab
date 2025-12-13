@@ -64,4 +64,12 @@ A Python-based financial analysis tool that implements **Mark Minervini's Trend 
 
 ## Disclaimer
 
-This tool is for educational purposes only. Do not use it as the sole basis for investment decisions.
+
+## License
+
+This project is licensed under the **Polyform Noncommercial License 1.0.0**.
+
+-   **Allowed**: Personal use, modification, and education.
+-   **Prohibited**: Commercial use, selling the software, or using it for business purposes.
+
+See the [LICENSE](LICENSE) file for details.

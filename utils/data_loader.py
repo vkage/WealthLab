@@ -16,10 +16,20 @@ def fetch_stock_data(ticker: str, period: str = "5y") -> pd.DataFrame:
     
     session = db.get_db_session()
     try:
-        # Check max date
+        # Check max AND min date to ensure history
+        min_date = session.query(func.min(MarketData.date)).filter_by(ticker=ticker).scalar()
         last_date = session.query(func.max(MarketData.date)).filter_by(ticker=ticker).scalar()
         
-        if last_date:
+        # Heuristic: If we need "5y" or "1y", we expect at least ~200 days for strategies.
+        # If min_date is too recent (e.g. < 1 year ago), we might need to backfill.
+        # Simple fix: If total count is small (< 260) and period is long, force refetch.
+        count = session.query(func.count(MarketData.date)).filter_by(ticker=ticker).scalar() or 0
+        
+        need_full_fetch = False
+        if period in ['1y', '2y', '5y', 'max'] and count < 260:
+            need_full_fetch = True
+            
+        if last_date and not need_full_fetch:
             today = pd.Timestamp.now().date()
             if last_date < today:
                 # Fetch missing
@@ -27,7 +37,7 @@ def fetch_stock_data(ticker: str, period: str = "5y") -> pd.DataFrame:
                 if not new_data.empty:
                     _save_to_db(session, ticker, new_data)
             
-            # Ensure StockDetails exist (Sector, etc.)
+            # Ensure StockDetails exist
             try:
                 if not session.query(StockDetails.ticker).filter_by(ticker=ticker).scalar():
                      _save_details(session, ticker)
@@ -37,7 +47,7 @@ def fetch_stock_data(ticker: str, period: str = "5y") -> pd.DataFrame:
             # Return from DB
             return _load_from_db(session, ticker)
         
-        # Else fetch full
+        # Else fetch full (either no data or insufficient history)
         df = _fetch_direct(ticker, period)
         if df is not None:
              _save_to_db(session, ticker, df)

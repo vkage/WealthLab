@@ -1,5 +1,6 @@
 import pandas as pd
 from sqlalchemy import text
+from sqlalchemy import text
 from utils.db import get_db
 from models import Portfolio, AnalysisCache 
 import json

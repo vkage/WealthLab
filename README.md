@@ -53,7 +53,7 @@
 4.  **Database Configuration**
     -   Copy the example environment file:
         ```bash
-        cp .env.example .env
+        cp .db.example .env
         ```
     -   Edit `.env` with your database credentials (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME).
 

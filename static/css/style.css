@@ -1,0 +1,160 @@
+/* Global Theme Variables */
+:root {
+    /* Default Dark Theme (Minimalist Slate) */
+    --bg-primary: #000000;
+    --bg-card: #1c1c1e;
+    --bg-sidebar: #101010;
+    --text-primary: #ffffff;
+    --text-secondary: #8e8e93;
+    --border-color: #38383a;
+    --accent: #0a84ff;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    --glass-blur: 0px;
+}
+
+/* Glass/Light Theme (Vibrant Aurora) */
+body.glass-theme {
+    /* Aurora Gradient Background */
+    --bg-primary: radial-gradient(circle at top left, #2c0e37, #0f172a, #000000);
+    --bg-card: rgba(255, 255, 255, 0.08);
+    --bg-sidebar: rgba(255, 255, 255, 0.05);
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.7);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --accent: #60a5fa;
+    --card-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    --glass-blur: 20px;
+}
+
+/* Base Styles */
+body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    /* Prioritize Apple system fonts, then Inter */
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", system-ui, sans-serif;
+    transition: background 0.5s ease;
+    min-height: 100vh;
+    /* Apple-like text rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.011em;
+    /* Slight tightening for "Pro" look */
+}
+
+/* Component Classes */
+.card {
+    background: var(--bg-card);
+    backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--border-color);
+    box-shadow: var(--card-shadow);
+    transition: all 0.3s ease;
+}
+
+.sidebar {
+    background: var(--bg-sidebar);
+    backdrop-filter: blur(var(--glass-blur));
+    border-right: 1px solid var(--border-color);
+}
+
+.input-spotlight {
+    background: rgba(142, 142, 147, 0.12);
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    width: 100%;
+    transition: background 0.2s;
+}
+
+.input-spotlight:focus {
+    background: rgba(142, 142, 147, 0.2);
+    outline: none;
+    box-shadow: 0 0 0 2px var(--accent);
+}
+
+/* Table Styles (Finder) */
+.finder-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.finder-table th {
+    text-align: left;
+    padding: 0.5rem 0.5rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 0.75rem;
+    /* Smaller, cleaner header font */
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border-color);
+    /* Kept specifically but cleaner opacity usually handled by var */
+    vertical-align: bottom;
+}
+
+/* Allow utility overrides */
+.finder-table th.text-right,
+.finder-table td.text-right {
+    text-align: right;
+}
+
+.finder-table th.text-center,
+.finder-table td.text-center {
+    text-align: center;
+}
+
+.finder-table td {
+    padding: 0.6rem 0.5rem;
+    /* Slightly reduced padding */
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+    vertical-align: middle;
+}
+
+.finder-table tr {
+    transition: background 0.1s;
+}
+
+.finder-table tr:hover {
+    background: rgba(10, 132, 255, 0.15);
+    /* Mac Selection Blue */
+}
+
+.finder-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Typography Utilities */
+.text-display {
+    font-weight: 200;
+    letter-spacing: -0.05em;
+}
+
+/* Collapsed Sidebar Overrides */
+aside.w-20 nav a span {
+    display: none !important;
+}
+
+aside.w-20 .nav-text {
+    display: none !important;
+}
+
+aside.w-20 #sidebar-header {
+    flex-direction: column-reverse;
+    height: 8rem;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+aside.w-20 #logo-full {
+    display: none;
+}
+
+aside.w-20 #logo-collapsed {
+    display: block !important;
+    position: static !important;
+}

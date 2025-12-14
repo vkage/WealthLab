@@ -4,21 +4,19 @@
 <div class="max-w-7xl mx-auto space-y-8">
 
     <!-- Header / Search -->
-    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+    <div class="flex flex-col md:flex-row justify-between items-center gap-6">
         <div>
-            <h2 class="text-3xl font-bold text-white">Market Analysis</h2>
-            <p class="text-gray-400">Analyze any stock with Minervini & Dual Momentum strategies.</p>
+            <h2 class="text-3xl font-semibold tracking-tight">Market Analysis</h2>
+            <p class="text-secondary mt-1">Minervini Trend & Dual Momentum Strategies</p>
         </div>
 
         <div class="relative w-full md:w-96">
-            <input type="text" id="tickerInput" placeholder="Enter Ticker (e.g. RELIANCE)"
-                class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500 uppercase">
-            <button onclick="analyzeStock()"
-                class="absolute right-2 top-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded-lg transition">
-                Analyze
-            </button>
+            <input type="text" id="tickerInput" placeholder="Search Markets (e.g. RELIANCE)"
+                class="input-spotlight uppercase placeholder-gray-500">
+
             <div id="suggestions"
-                class="absolute z-50 w-full bg-gray-800 border border-gray-700 rounded-b-xl mt-1 hidden"></div>
+                class="absolute z-50 w-full bg-card backdrop-blur-xl border border-white/10 rounded-xl mt-2 hidden overflow-hidden shadow-2xl">
+            </div>
         </div>
     </div>
 
@@ -27,70 +25,50 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Benchmark Card -->
         <a href="/?q=^NSEI" class="block group">
-            <div
-                class="glass-panel p-6 rounded-2xl flex items-center justify-between relative overflow-hidden group-hover:bg-white/5 transition">
-                <!-- Background Glow based on Status -->
-                <div
-                    class="absolute inset-0 opacity-10 {{ 'bg-green-500' if metrics.benchmark.status == 'Strong Buy' else ('bg-blue-500' if metrics.benchmark.status == 'Accumulation' else ('bg-red-500' if metrics.benchmark.status == 'Weak' else 'bg-yellow-500')) }}">
-                </div>
+            <div class="card p-8 rounded-2xl relative overflow-hidden h-full group-hover:border-blue-500/50 transition">
+                <!-- Subtle Gradient Glow -->
+                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
 
-                <div class="relative z-10">
-                    <h3
-                        class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1 group-hover:text-blue-400 transition">
-                        Benchmark Momentum</h3>
-                    <div class="flex items-baseline space-x-2">
-                        <div class="text-2xl font-bold text-white">{{ metrics.benchmark.name }}</div>
-                    </div>
-
-                    <div class="mt-2 flex items-center space-x-2">
-                        <!-- Status Badge -->
-                        <span
-                            class="px-2 py-1 rounded text-xs font-bold 
-                            {{ 'bg-green-500 text-white' if metrics.benchmark.status == 'Strong Buy' else 
-                               ('bg-blue-500 text-white' if metrics.benchmark.status == 'Accumulation' else 
-                                ('bg-red-500 text-white' if metrics.benchmark.status == 'Weak' else 'bg-yellow-500 text-black')) }}">
-                            {{ metrics.benchmark.status }}
-                        </span>
-                        <span class="text-xs text-gray-300 uppercase tracking-wide">: {{ metrics.benchmark.trend
-                            }}</span>
-                    </div>
-
+                <h3 class="text-secondary text-xs font-bold uppercase tracking-wider mb-2">Benchmark</h3>
+                <div class="flex items-baseline gap-3">
+                    <div class="text-4xl font-light tracking-tight">{{ metrics.benchmark.name }}</div>
                     <div
-                        class="text-xs font-mono mt-2 {{ 'text-green-400' if metrics.benchmark.change_1y >= 0 else 'text-red-400' }}">
-                        {{ "{:+,.2f}".format(metrics.benchmark.change_1y) }}% (1Y)
+                        class="text-lg font-mono {{ 'text-green-500' if metrics.benchmark.change_1y >= 0 else 'text-red-500' }}">
+                        {{ "{:+,.2f}".format(metrics.benchmark.change_1y) }}%
                     </div>
                 </div>
 
-                <div class="w-48 h-20 relative z-10">
-                    <canvas id="benchChart"></canvas>
+                <div class="mt-4 flex items-center gap-3">
+                    <span class="px-3 py-1 rounded-full text-xs font-medium bg-white/5 border border-white/10">
+                        {{ metrics.benchmark.status }}
+                    </span>
+                    <span class="text-xs text-secondary uppercase">{{ metrics.benchmark.trend }}</span>
                 </div>
             </div>
         </a>
 
         <!-- Breadth Card -->
-        <div class="glass-panel p-6 rounded-2xl">
-            <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">
+        <div class="card p-8 rounded-2xl h-full">
+            <h3 class="text-secondary text-xs font-bold uppercase tracking-wider mb-4">
                 {{ metrics.breadth.label }}
             </h3>
-            <div class="flex items-center space-x-4 mb-3">
-                <div class="text-green-400 font-bold text-xl">{{ metrics.breadth.bullish }} Bull</div>
-                <div class="text-yellow-500 font-bold text-xl">{{ metrics.breadth.neutral }} Mixed</div>
-                <div class="text-red-400 font-bold text-xl">{{ metrics.breadth.bearish }} Bear</div>
-                <div class="text-gray-500 text-sm">/ {{ metrics.breadth.total }} Total Stocks</div>
+
+            <div class="flex justify-between items-end mb-2">
+                <div class="text-3xl font-light text-green-500">{{ metrics.breadth.bullish }}</div>
+                <div class="text-xs text-secondary mb-1 uppercase tracking-wide">Bullish Stocks</div>
             </div>
 
-            <!-- Progress Bar -->
-            <div class="relative w-full h-3 bg-gray-800 rounded-full overflow-hidden flex">
+            <!-- iOS Slider Style Progress -->
+            <div class="relative w-full h-2 bg-white/10 rounded-full overflow-hidden flex">
                 {% set total = metrics.breadth.total if metrics.breadth.total > 0 else 1 %}
-                <div class="h-full bg-gradient-to-r from-green-600 to-green-400"
-                    style="width: {{ (metrics.breadth.bullish / total) * 100 }}%"></div>
-                <div class="h-full bg-yellow-600" style="width: {{ (metrics.breadth.neutral / total) * 100 }}%"></div>
-                <div class="h-full bg-gradient-to-r from-red-400 to-red-600"
-                    style="width: {{ (metrics.breadth.bearish / total) * 100 }}%"></div>
+                <div class="h-full bg-green-500" style="width: {{ (metrics.breadth.bullish / total) * 100 }}%"></div>
+                <div class="h-full bg-orange-500" style="width: {{ (metrics.breadth.neutral / total) * 100 }}%"></div>
+                <div class="h-full bg-red-500" style="width: {{ (metrics.breadth.bearish / total) * 100 }}%"></div>
             </div>
-            <div class="flex justify-between text-[10px] text-gray-500 mt-1 uppercase">
-                <span>Pass (Broad Uptrend)</span>
-                <span>Fail (Downtrend)</span>
+
+            <div class="flex justify-between mt-3 text-xs text-secondary">
+                <span>{{ metrics.breadth.bearish }} Bearish</span>
+                <span>{{ metrics.breadth.total }} Total</span>
             </div>
         </div>
     </div>
@@ -101,30 +79,23 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {% for p in portfolios %}
         <a href="{{ url_for('portfolio_view', pid=p.id) }}" class="block group h-full">
-            <div
-                class="glass-panel p-6 rounded-2xl hover:bg-white/5 transition border-t-4 {{ 'border-green-500' if p.pnl >= 0 else 'border-red-500' }} h-full flex flex-col">
-                <div class="flex justify-between items-start mb-4">
-                    <h3 class="font-bold text-lg text-white group-hover:text-blue-400 transition">{{ p.name }}</h3>
-                    <span class="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded-lg">{{ p.count }} Stocks</span>
+            <div class="card p-6 rounded-2xl h-full flex flex-col hover:border-blue-500/30 transition shadow-lg">
+                <div class="flex justify-between items-start mb-6">
+                    <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-secondary">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                    </div>
+                    <span class="text-xs font-mono text-secondary">{{ p.count }} Pos</span>
                 </div>
 
-                <div class="flex-1 flex flex-col justify-between space-y-4">
-                    <!-- Sector Mini Chart -->
-                    <div class="h-32 relative">
-                        <canvas id="chart-sector-{{ p.id }}"></canvas>
-                    </div>
+                <h3 class="text-lg font-medium group-hover:text-blue-400 transition">{{ p.name }}</h3>
 
-                    <div class="space-y-1 mt-auto">
-                        <div class="flex justify-between text-sm">
-                            <span class="text-gray-400">Value</span>
-                            <span class="font-mono text-white">₹{{ "{:,.0f}".format(p.current) }}</span>
-                        </div>
-                        <div class="flex justify-between text-sm">
-                            <span class="text-gray-400">P/L</span>
-                            <span class="font-mono {{ 'text-green-400' if p.pnl >= 0 else 'text-red-400' }}">
-                                {{ "{:+,.0f}".format(p.pnl) }} ({{ "{:+.1f}".format(p.pnl_pct) }}%)
-                            </span>
-                        </div>
+                <div class="mt-auto pt-4">
+                    <div class="text-2xl font-light">₹{{ "{:,.0f}".format(p.current) }}</div>
+                    <div class="text-sm font-mono mt-1 {{ 'text-green-500' if p.pnl >= 0 else 'text-red-500' }}">
+                        {{ "{:+,.0f}".format(p.pnl) }} ({{ "{:+.1f}".format(p.pnl_pct) }}%)
                     </div>
                 </div>
             </div>
@@ -133,125 +104,85 @@
     </div>
     {% endif %}
 
-    <!-- Plotly CDN -->
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- Chart Modal for Full Screen -->
-    <div id="chartModal" class="fixed inset-0 bg-black/90 z-50 hidden flex flex-col p-4">
-        <div class="flex justify-between items-center mb-4 px-4">
-            <h2 id="modalChartTitle" class="text-xl font-bold text-white">Full Screen Chart</h2>
-            <button onclick="closeChartModal()"
-                class="text-gray-400 hover:text-white bg-gray-800 px-4 py-2 rounded-lg">Close</button>
-        </div>
-        <div id="modalChartContainer" class="flex-1 w-full bg-gray-900 rounded-xl relative"></div>
-    </div>
-
-    <!-- Loading State -->
-    <div id="loading" class="hidden text-center py-20">
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        <p class="mt-4 text-gray-400">Crunching numbers...</p>
-    </div>
-
     <!-- Results Container -->
-    <div id="results" class="hidden space-y-6">
+    <div id="loading" class="hidden text-center py-20">
+        <div class="inline-block animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
+    </div>
 
-        <!-- Top Card: Price & Summary -->
+    <div id="results" class="hidden space-y-8">
+        <!-- Ticker Header -->
         <div
-            class="glass-panel rounded-2xl p-6 flex justify-between items-start bg-gradient-to-r from-gray-800 to-gray-900">
+            class="card rounded-2xl p-8 flex justify-between items-center bg-gradient-to-r from-blue-900/20 to-transparent">
             <div>
-                <h1 id="resTicker" class="text-4xl font-bold text-white tracking-tight">--</h1>
-                <div class="text-2xl font-mono text-blue-400 mt-1">₹<span id="resPrice">--</span></div>
+                <h1 id="resTicker" class="text-5xl font-thin tracking-tighter">--</h1>
+                <div class="text-3xl font-mono text-blue-400 mt-2">₹<span id="resPrice">--</span></div>
             </div>
             <div class="text-right">
                 <div id="resSummaryBadge"
-                    class="inline-block px-4 py-2 rounded-full text-sm font-bold bg-gray-700 text-gray-300">--</div>
-                <div class="mt-2 text-sm text-gray-400">Strategies Passed</div>
+                    class="inline-block px-4 py-2 rounded-full text-sm font-bold bg-white/10 uppercase tracking-wide">--
+                </div>
             </div>
         </div>
 
-        <!-- Strategy Tabs -->
-        <div class="glass-panel rounded-2xl overflow-hidden">
-            <!-- Tabs Header -->
-            <div class="flex border-b border-gray-700">
+        <!-- Tabs -->
+        <div class="card rounded-2xl overflow-hidden min-h-[600px]">
+            <div class="flex border-b border-white/10">
                 <button onclick="switchTab('minervini')" id="tab-minervini"
-                    class="px-6 py-4 text-sm font-medium text-blue-400 border-b-2 border-blue-400 bg-white/5 transition">Minervini
+                    class="px-8 py-5 text-sm font-medium border-b-2 border-blue-500 text-blue-400 bg-white/5">Minervini
                     Trend</button>
                 <button onclick="switchTab('dual')" id="tab-dual"
-                    class="px-6 py-4 text-sm font-medium text-gray-400 hover:text-white transition">Dual
+                    class="px-8 py-5 text-sm font-medium text-secondary hover:text-white transition">Dual
                     Momentum</button>
             </div>
 
-            <!-- Tab Content: Minervini -->
-            <div id="content-minervini" class="p-6 space-y-6">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Status Card -->
-                    <div class="lg:col-span-1 space-y-4">
-                        <div id="minerviniStatusBox" class="p-4 rounded-xl bg-green-900/20 border border-green-500/30">
-                            <h3 class="text-sm font-semibold text-gray-400 uppercase">Status</h3>
-                            <div id="minScore" class="text-2xl font-bold text-green-400 mt-1">PASS</div>
-                        </div>
-
-                        <!-- Checklist -->
-                        <div class="glass-panel p-4 rounded-xl">
-                            <h3 class="text-sm font-semibold text-gray-400 mb-3">Analysis Log</h3>
-                            <ul id="minDetails" class="space-y-2 text-sm text-gray-300 h-64 overflow-y-auto"></ul>
-                        </div>
+            <!-- Content: Minervini -->
+            <div id="content-minervini" class="p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="p-6 rounded-2xl bg-white/5 border border-white/10">
+                        <h3 class="text-xs font-bold text-secondary uppercase mb-2">Trend Status</h3>
+                        <div id="minScore" class="text-3xl font-bold">--</div>
                     </div>
-
-                    <!-- Chart -->
-                    <div class="lg:col-span-2 glass-panel rounded-xl p-4 h-[600px] flex flex-col relative group">
-                        <div
-                            class="absolute top-4 right-4 z-10 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onclick="toggleTheme('minChartFrame')"
-                                class="bg-gray-700/80 hover:bg-blue-600 text-white p-2 rounded-lg text-xs font-bold"
-                                title="Toggle Theme">🌗 Theme</button>
-                            <button onclick="openChartModal('minChartFrame', 'Minervini Trend')"
-                                class="bg-gray-700/80 hover:bg-blue-600 text-white p-2 rounded-lg text-xs font-bold"
-                                title="Full Screen">⛶ Full</button>
-                        </div>
-                        <h3 class="text-gray-400 text-sm mb-2 px-2">Trend Analysis Chart</h3>
-                        <div id="minChartFrame" class="w-full flex-1 rounded-lg bg-gray-900"></div>
+                    <div>
+                        <h3 class="text-xs font-bold text-secondary uppercase mb-3">Checklist</h3>
+                        <ul id="minDetails" class="space-y-3 text-sm text-secondary"></ul>
                     </div>
+                </div>
+                <div id="min-chart-wrapper" class="lg:col-span-2 relative group">
+                    <div id="minChartFrame" class="w-full h-[500px] rounded-xl bg-white/5 transition-all"></div>
+                    <button onclick="toggleFullscreen('min-chart-wrapper', 'minChartFrame')"
+                        class="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 backdrop-blur-md border border-white/10 rounded-lg text-white opacity-0 group-hover:opacity-100 transition duration-200 z-10"
+                        title="Toggle Fullscreen">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4">
+                            </path>
+                        </svg>
+                    </button>
                 </div>
             </div>
 
-            <!-- Tab Content: Dual Momentum -->
-            <div id="content-dual" class="p-6 space-y-6 hidden">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Status Card -->
-                    <div class="lg:col-span-1 space-y-4">
-                        <div id="dualStatusBox" class="p-4 rounded-xl bg-green-900/20 border border-green-500/30">
-                            <h3 class="text-sm font-semibold text-gray-400 uppercase">Status</h3>
-                            <div id="dualSignal" class="text-2xl font-bold text-green-400 mt-1">BUY</div>
-                        </div>
-
-                        <div class="glass-panel p-4 rounded-xl">
-                            <h3 class="text-sm font-semibold text-gray-400 mb-3">Performance Metrics</h3>
-                            <ul id="dualMetrics" class="space-y-3"></ul>
-                            <div class="mt-4 pt-4 border-t border-gray-700">
-                                <ul id="dualDetails" class="space-y-2 text-sm text-gray-300 h-64 overflow-y-auto"></ul>
-                            </div>
-                        </div>
+            <!-- Content: Dual -->
+            <div id="content-dual" class="p-8 grid grid-cols-1 lg:grid-cols-3 gap-8 hidden">
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="p-6 rounded-2xl bg-white/5 border border-white/10">
+                        <h3 class="text-xs font-bold text-secondary uppercase mb-2">Signal</h3>
+                        <div id="dualSignal" class="text-3xl font-bold">--</div>
                     </div>
-
-                    <!-- Chart -->
-                    <div class="lg:col-span-2 glass-panel rounded-xl p-4 h-[600px] flex flex-col relative group">
-                        <div
-                            class="absolute top-4 right-4 z-10 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onclick="toggleTheme('dualChartFrame')"
-                                class="bg-gray-700/80 hover:bg-blue-600 text-white p-2 rounded-lg text-xs font-bold"
-                                title="Toggle Theme">🌗 Theme</button>
-                            <button onclick="openChartModal('dualChartFrame', 'Dual Momentum')"
-                                class="bg-gray-700/80 hover:bg-blue-600 text-white p-2 rounded-lg text-xs font-bold"
-                                title="Full Screen">⛶ Full</button>
-                        </div>
-                        <h3 class="text-gray-400 text-sm mb-2 px-2">Relative Strength vs Nifty 50</h3>
-                        <div id="dualChartFrame" class="w-full flex-1 rounded-lg bg-gray-900"></div>
-                    </div>
+                    <ul id="dualMetrics" class="space-y-4 text-sm"></ul>
+                </div>
+                <div id="dual-chart-wrapper" class="lg:col-span-2 relative group">
+                    <div id="dualChartFrame" class="w-full h-[500px] rounded-xl bg-white/5 transition-all"></div>
+                    <button onclick="toggleFullscreen('dual-chart-wrapper', 'dualChartFrame')"
+                        class="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 backdrop-blur-md border border-white/10 rounded-lg text-white opacity-0 group-hover:opacity-100 transition duration-200 z-10"
+                        title="Toggle Fullscreen">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4">
+                            </path>
+                        </svg>
+                    </button>
                 </div>
             </div>
-
         </div>
     </div>
 </div>
@@ -268,12 +199,7 @@
             .then(r => r.json())
             .then(data => {
                 document.getElementById('loading').classList.add('hidden');
-
-                if (data.error) {
-                    alert(data.error);
-                    return;
-                }
-
+                if (data.error) { alert(data.error); return; }
                 renderResults(data);
             })
             .catch(e => {
@@ -284,8 +210,6 @@
 
     function renderResults(data) {
         document.getElementById('results').classList.remove('hidden');
-
-        // Header
         document.getElementById('resTicker').innerText = data.ticker;
         document.getElementById('resPrice').innerText = data.price;
 
@@ -293,160 +217,84 @@
         const badge = document.getElementById('resSummaryBadge');
         badge.innerText = `${summary.strategies_passed} Strategies Passed`;
         badge.className = summary.bullish
-            ? "inline-block px-4 py-2 rounded-full text-sm font-bold bg-green-600 text-white"
-            : (summary.bearish
-                ? "inline-block px-4 py-2 rounded-full text-sm font-bold bg-red-600 text-white"
-                : "inline-block px-4 py-2 rounded-full text-sm font-bold bg-yellow-600 text-white");
+            ? "inline-block px-4 py-2 rounded-full text-sm font-bold bg-green-500/20 text-green-400 border border-green-500/30 uppercase"
+            : "inline-block px-4 py-2 rounded-full text-sm font-bold bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 uppercase";
 
         // Minervini
         const min = data.strategies['Minervini Trend Template'];
-        document.getElementById('minScore').innerText = min.status;
-        document.getElementById('minScore').className = min.status === 'PASS' ? "text-2xl font-bold text-green-400 mt-1" : "text-2xl font-bold text-red-400 mt-1";
+        const minScore = document.getElementById('minScore');
+        minScore.innerText = min.status;
+        minScore.className = min.status === 'PASS' ? "text-3xl font-bold text-green-400" : "text-3xl font-bold text-red-400";
 
-        const minList = document.getElementById('minDetails');
-        minList.innerHTML = min.details.map(d => `<li class="flex items-start"><span class="mr-2 text-xs">🔹</span>${d}</li>`).join('');
+        document.getElementById('minDetails').innerHTML = min.details.map(d =>
+            `<li class="flex items-center"><span class="w-1.5 h-1.5 rounded-full bg-blue-500 mr-3"></span>${d}</li>`
+        ).join('');
 
         if (min.chart_json) {
             const fig = JSON.parse(min.chart_json);
-            // Default Config to be responsive
             const config = { responsive: true, displayModeBar: false };
+            // Force transparent background for glass effect
+            fig.layout.paper_bgcolor = 'rgba(0,0,0,0)';
+            fig.layout.plot_bgcolor = 'rgba(0,0,0,0)';
+            fig.layout.font = { color: '#a1a1aa' };
             Plotly.newPlot('minChartFrame', fig.data, fig.layout, config);
-        } else {
-            document.getElementById('minChartFrame').innerHTML = "<p class='text-gray-500 text-center pt-20'>No Chart Data</p>";
         }
 
-        // Dual Momentum
+        // Dual
         const dual = data.strategies['Dual Momentum (Antonacci)'];
-        document.getElementById('dualSignal').innerText = dual.signal;
+        const dualSignal = document.getElementById('dualSignal');
+        dualSignal.innerText = dual.signal;
+        dualSignal.className = dual.signal === 'BUY' ? "text-3xl font-bold text-green-400" : "text-3xl font-bold text-secondary";
+
+        const m = dual.metrics || {};
+        document.getElementById('dualMetrics').innerHTML = `
+            <li class="flex justify-between border-b border-white/5 pb-2"><span class="text-secondary">Stock 1Y</span> <span class="font-mono text-white">${m.Stock_1yr_Ret}</span></li>
+            <li class="flex justify-between border-b border-white/5 pb-2"><span class="text-secondary">Benchmark 1Y</span> <span class="font-mono text-white">${m.Bench_1yr_Ret}</span></li>
+            <li class="flex justify-between border-b border-white/5 pb-2"><span class="text-secondary">Alpha</span> <span class="font-bold text-blue-400">${m.Alpha}</span></li>
+        `;
 
         if (dual.chart_json) {
             const fig = JSON.parse(dual.chart_json);
-            const config = { responsive: true, displayModeBar: false };
-            Plotly.newPlot('dualChartFrame', fig.data, fig.layout, config);
-        } else {
-            document.getElementById('dualChartFrame').innerHTML = "<p class='text-gray-500 text-center pt-20'>No Chart Data</p>";
+            fig.layout.paper_bgcolor = 'rgba(0,0,0,0)';
+            fig.layout.plot_bgcolor = 'rgba(0,0,0,0)';
+            fig.layout.font = { color: '#a1a1aa' };
+            Plotly.newPlot('dualChartFrame', fig.data, fig.layout, { responsive: true, displayModeBar: false });
         }
-
-        const dualMetrics = document.getElementById('dualMetrics');
-        const m = dual.metrics || {};
-        dualMetrics.innerHTML = `
-            <li class="flex justify-between text-sm"><span class="text-gray-400">Stock 1yr</span> <span class="${parseFloat(m.Stock_1yr_Ret) > 0 ? 'text-green-400' : 'text-red-400'}">${m.Stock_1yr_Ret}</span></li>
-            <li class="flex justify-between text-sm"><span class="text-gray-400">Benchmark 1yr</span> <span>${m.Bench_1yr_Ret}</span></li>
-            <li class="flex justify-between text-sm"><span class="text-gray-400">Alpha</span> <span class="font-bold text-white">${m.Alpha}</span></li>
-        `;
-        document.getElementById('dualDetails').innerHTML = dual.details.map(d => `<li class="flex items-start"><span class="mr-2 text-xs">🔹</span>${d}</li>`).join('');
     }
 
     function switchTab(tab) {
         ['minervini', 'dual'].forEach(t => {
             const btn = document.getElementById(`tab-${t}`);
             const content = document.getElementById(`content-${t}`);
-
             if (t === tab) {
-                btn.classList.add('text-blue-400', 'border-b-2', 'border-blue-400', 'bg-white/5');
-                btn.classList.remove('text-gray-400');
+                btn.className = "px-8 py-5 text-sm font-medium border-b-2 border-blue-500 text-blue-400 bg-white/5";
                 content.classList.remove('hidden');
-                // Force Plotly resize on tab switch
                 if (t === 'minervini') Plotly.Plots.resize('minChartFrame');
                 if (t === 'dual') Plotly.Plots.resize('dualChartFrame');
             } else {
-                btn.classList.remove('text-blue-400', 'border-b-2', 'border-blue-400', 'bg-white/5');
-                btn.classList.add('text-gray-400');
+                btn.className = "px-8 py-5 text-sm font-medium text-secondary hover:text-white transition";
                 content.classList.add('hidden');
             }
         });
     }
 
-    // --- Chart Controls ---
-
-    async function toggleTheme(divId) {
-        const div = document.getElementById(divId);
-        // Check current template or background color
-        // Plotly uses layout.template. We can just check background color
-        // If dark -> light, else light -> dark
-
-        // Simpler: Just toggle between plotly_dark and plotly_white
-        // We need to access the current layout.
-        // There isn't a simple "getTemplate" API, but we can infer from our default
-
-        // Let's assume we toggle.
-        // Access existing layout
-        const currentLayout = div.layout;
-        const isDark = currentLayout.template ? (currentLayout.template.layout.plot_bgcolor !== 'white') : true; // Heuristic
-
-        // Actually, just maintain state or toggle based on paper_bgcolor
-        // Default is dark (transparent paper).
-
-        const newTemplate = (div.getAttribute('data-theme') === 'light') ? 'plotly_dark' : 'plotly_white';
-        const newBg = (newTemplate === 'plotly_dark') ? 'rgba(0,0,0,0)' : '#ffffff';
-        const newFont = (newTemplate === 'plotly_dark') ? '#ffffff' : '#000000';
-
-        const update = {
-            'template': null, // Clear template? Hard to swap template entirely dynamically without full re-plot
-            'paper_bgcolor': newBg,
-            'plot_bgcolor': newBg,
-            'font.color': newFont
-            // Grid lines etc need manual update if swapping template is hard
-        };
-
-        // To really swap template, we might need to re-newPlot with new template layout
-        // But let's try relayout first.
-        Plotly.relayout(divId, update);
-        div.setAttribute('data-theme', (newTemplate === 'plotly_dark') ? 'dark' : 'light');
-    }
-
-    let currentModalChart = null;
-
-    function openChartModal(sourceDivId, title) {
-        const modal = document.getElementById('chartModal');
-        const container = document.getElementById('modalChartContainer');
-        const titleEl = document.getElementById('modalChartTitle');
-        const sourceDiv = document.getElementById(sourceDivId);
-
-        titleEl.innerText = title;
-        modal.classList.remove('hidden');
-
-        // Copy data from source
-        const data = sourceDiv.data;
-        const layout = JSON.parse(JSON.stringify(sourceDiv.layout)); // Deep copy
-
-        // Adjust layout for modal
-        layout.height = undefined; // Auto height
-        layout.width = undefined; // Auto width
-        layout.autosize = true;
-
-        Plotly.newPlot('modalChartContainer', data, layout, { responsive: true });
-        currentModalChart = 'modalChartContainer';
-    }
-
-    function closeChartModal() {
-        document.getElementById('chartModal').classList.add('hidden');
-        Plotly.purge('modalChartContainer');
-        currentModalChart = null;
-    }
-
-    // Resize modal chart on window resize
-    window.addEventListener('resize', () => {
-        if (currentModalChart) Plotly.Plots.resize(currentModalChart);
-    });
-
-    // Auto-search logic (Same as old but cleaner)
+    // Auto-search logic
     const input = document.getElementById('tickerInput');
     const suggestBox = document.getElementById('suggestions');
 
     input.addEventListener('input', async (e) => {
         const q = e.target.value;
         if (q.length < 2) { suggestBox.classList.add('hidden'); return; }
-
-        const res = await fetch(`/suggest?q=${encodeURIComponent(q)}`);
-        const list = await res.json();
-
-        if (list.length > 0) {
-            suggestBox.innerHTML = list.map(t =>
-                `<div class="px-4 py-2 hover:bg-gray-700 cursor-pointer" onclick="selectTicker('${t}')">${t}</div>`
-            ).join('');
-            suggestBox.classList.remove('hidden');
-        }
+        try {
+            const res = await fetch(`/suggest?q=${encodeURIComponent(q)}`);
+            const list = await res.json();
+            if (list.length > 0) {
+                suggestBox.innerHTML = list.map(t =>
+                    `<div class="px-4 py-3 hover:bg-white/10 cursor-pointer text-sm font-medium border-b border-white/5 last:border-0" onclick="selectTicker('${t}')">${t}</div>`
+                ).join('');
+                suggestBox.classList.remove('hidden');
+            }
+        } catch (e) { }
     });
 
     function selectTicker(t) {
@@ -455,7 +303,79 @@
         analyzeStock();
     }
 
-    // Auto-load from URL param
+    // Enter key
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            suggestBox.classList.add('hidden');
+            analyzeStock();
+        }
+    });
+
+    function toggleFullscreen(wrapperId, chartId) {
+        const wrapper = document.getElementById(wrapperId);
+        const chart = document.getElementById(chartId);
+        const isFullscreen = wrapper.dataset.fullscreen === 'true';
+
+        if (!isFullscreen) {
+            // ENTER FULLSCREEN
+
+            // 1. Create Placeholder
+            const placeholder = document.createElement('div');
+            placeholder.id = wrapperId + '-placeholder';
+            placeholder.style.display = 'none';
+            wrapper.parentNode.insertBefore(placeholder, wrapper);
+
+            // 2. Move to Body
+            document.body.appendChild(wrapper);
+
+            // 3. Apply Styles
+            wrapper.classList.remove('lg:col-span-2', 'relative', 'group');
+            wrapper.classList.add('fixed', 'inset-0', 'z-[9999]', 'bg-gray-900', 'flex', 'flex-col', 'p-6');
+
+            chart.classList.remove('h-[500px]', 'rounded-xl', 'bg-white/5');
+            chart.classList.add('flex-1', 'w-full', 'h-full');
+
+            // 4. Update Button (Always visible)
+            const btn = wrapper.querySelector('button');
+            btn.classList.remove('opacity-0', 'group-hover:opacity-100', 'absolute');
+            btn.classList.add('fixed', 'top-6', 'right-6', 'z-[10000]', 'bg-red-500/80', 'hover:bg-red-600');
+            btn.innerHTML = '<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+
+            wrapper.dataset.fullscreen = 'true';
+
+        } else {
+            // EXIT FULLSCREEN
+
+            // 1. Find Placeholder
+            const placeholder = document.getElementById(wrapperId + '-placeholder');
+
+            // 2. Move back
+            if (placeholder) {
+                placeholder.parentNode.insertBefore(wrapper, placeholder);
+                placeholder.remove();
+            }
+
+            // 3. Reset Styles
+            wrapper.classList.add('lg:col-span-2', 'relative', 'group');
+            wrapper.classList.remove('fixed', 'inset-0', 'z-[9999]', 'bg-gray-900', 'flex', 'flex-col', 'p-6');
+
+            chart.classList.add('h-[500px]', 'rounded-xl', 'bg-white/5');
+            chart.classList.remove('flex-1', 'w-full', 'h-full');
+
+            // 4. Reset Button
+            const btn = wrapper.querySelector('button');
+            btn.classList.add('opacity-0', 'group-hover:opacity-100', 'absolute');
+            btn.classList.remove('fixed', 'top-6', 'right-6', 'z-[10000]', 'bg-red-500/80', 'hover:bg-red-600');
+            btn.innerHTML = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>';
+
+            wrapper.dataset.fullscreen = 'false';
+        }
+
+        // Force resize
+        setTimeout(() => Plotly.Plots.resize(chartId), 50);
+    }
+
+    // Auto-load
     document.addEventListener('DOMContentLoaded', () => {
         const params = new URLSearchParams(window.location.search);
         const ticker = params.get('q');

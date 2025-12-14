@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WealthLab</title>
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS (Keep for utility structure) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -14,82 +14,228 @@
                 extend: {
                     colors: {
                         darkaaa: '#1a1a1a',
-                        glass: 'rgba(255, 255, 255, 0.05)',
                     }
                 }
             }
         }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
+    <!-- Custom Theme CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
-        .glass-panel {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
 
-<body class="bg-gray-900 text-white min-h-screen flex">
+<body class="bg-gray-900 text-white min-h-screen flex transition-colors duration-500">
 
     <!-- Sidebar -->
-    <aside
-        class="w-64 glass-panel border-r border-gray-700 flex flex-col fixed h-full z-10 transition-transform transform -translate-x-full md:translate-x-0">
-        <div class="p-6">
-            <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-                WealthLab
-            </h1>
+    <aside id="sidebar"
+        class="w-64 sidebar flex flex-col fixed h-full z-20 transition-all duration-300 transform -translate-x-full md:translate-x-0">
+        <div id="sidebar-header" class="p-6 flex justify-between items-center h-20">
+            <!-- Full Logo -->
+            <div id="logo-full"
+                class="flex items-center gap-2 overflow-hidden whitespace-nowrap transition-opacity duration-300">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                    class="flex-shrink-0">
+                    <path d="M3 13L8 19L16 5L21 12" stroke="url(#logo_gradient)" stroke-width="3" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <defs>
+                        <linearGradient id="logo_gradient" x1="3" y1="12" x2="21" y2="12"
+                            gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#60A5FA" />
+                            <stop offset="1" stop-color="#C084FC" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <h1 class="text-xl tracking-tight opacity-100 transition-opacity duration-300">
+                    <span class="font-bold text-white">Wealth</span><span class="text-gray-400 font-medium">Lab</span>
+                </h1>
+            </div>
+
+            <!-- Collapsed Logo (initially hidden) -->
+            <div id="logo-collapsed" class="hidden absolute left-6 top-6">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 13L8 19L16 5L21 12" stroke="url(#logo_gradient_mini)" stroke-width="3"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                    <defs>
+                        <linearGradient id="logo_gradient_mini" x1="3" y1="12" x2="21" y2="12"
+                            gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#60A5FA" />
+                            <stop offset="1" stop-color="#C084FC" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+
+            <!-- Toggle Button -->
+            <button onclick="toggleSidebar()"
+                class="p-1.5 rounded-md hover:bg-white/10 text-gray-400 hover:text-white transition hidden md:block"
+                title="Toggle Sidebar">
+                <svg id="collapseIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+                </svg>
+            </button>
         </div>
 
-        <nav class="flex-1 px-4 space-y-2">
-            <a href="/"
-                class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors {{ 'bg-blue-600/20 text-blue-400' if request.path == '/' else 'text-gray-400' }}">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <nav class="flex-1 px-4 space-y-2 mt-2">
+            <a href="/" title="Dashboard"
+                class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors group {{ 'bg-blue-600/20 text-blue-400' if request.path == '/' else 'text-gray-400' }}">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
                     </path>
                 </svg>
-                Dashboard
+                <span class="ml-3 whitespace-nowrap transition-opacity duration-300 nav-text">Dashboard</span>
             </a>
-            <a href="/portfolio"
-                class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors {{ 'bg-blue-600/20 text-blue-400' if request.path == '/portfolio' else 'text-gray-400' }}">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <a href="/portfolio" title="Portfolios"
+                class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors group {{ 'bg-blue-600/20 text-blue-400' if request.path == '/portfolio' else 'text-gray-400' }}">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
                     </path>
                 </svg>
-                Portfolios
+                <span class="ml-3 whitespace-nowrap transition-opacity duration-300 nav-text">Portfolios</span>
             </a>
-            <a href="/watchlist"
-                class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors {{ 'bg-blue-600/20 text-blue-400' if request.path == '/watchlist' else 'text-gray-400' }}">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <a href="/watchlist" title="Watchlist"
+                class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors group {{ 'bg-blue-600/20 text-blue-400' if request.path == '/watchlist' else 'text-gray-400' }}">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
-                Watchlist
+                <span class="ml-3 whitespace-nowrap transition-opacity duration-300 nav-text">Watchlist</span>
             </a>
         </nav>
 
-        <div class="p-4 border-t border-gray-700">
-            <div class="text-xs text-gray-500">v2.0 (Dual Momentum)</div>
+        <div class="p-4 border-t border-gray-700/30 flex flex-col gap-4">
+            <!-- Theme Toggle (moved here) -->
+            <button onclick="toggleTheme()"
+                class="flex items-center px-4 py-2 rounded-lg hover:bg-white/10 text-gray-400 transition"
+                title="Toggle Theme">
+                <svg id="themeIcon" class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+                <span class="ml-3 whitespace-nowrap transition-opacity duration-300 nav-text">Theme</span>
+            </button>
+            <div class="text-xs text-gray-600 nav-text whitespace-nowrap px-4">v2.1 Pro</div>
         </div>
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 md:ml-64 p-8 overflow-y-auto">
+    <main id="main-content" class="flex-1 md:ml-64 p-8 overflow-y-auto transition-all duration-300">
+        <!-- Mobile Menu trigger -->
+        <button onclick="toggleMobileMenu()" class="md:hidden mb-6 text-gray-400 hover:text-white">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16">
+                </path>
+            </svg>
+        </button>
         {% block content %}{% endblock %}
     </main>
 
     <script>
-        // Common scripts if needed
+        // Collapsible Sidebar Logic
+        const sidebar = document.getElementById('sidebar');
+        const sidebarHeader = document.getElementById('sidebar-header');
+        const mainContent = document.getElementById('main-content');
+        const collapseIcon = document.getElementById('collapseIcon');
+        const navTexts = document.querySelectorAll('.nav-text');
+
+        const logoFull = document.getElementById('logo-full');
+        const logoCollapsed = document.getElementById('logo-collapsed');
+
+        let isCollapsed = localStorage.getItem('sidebarState') === 'collapsed';
+
+        function updateUI() {
+            if (isCollapsed) {
+                // Widths
+                sidebar.classList.remove('w-64');
+                sidebar.classList.add('w-20');
+                mainContent.classList.remove('md:ml-64');
+                mainContent.classList.add('md:ml-20');
+
+                // Header Layout: Stack vertically
+                if (sidebarHeader) {
+                    sidebarHeader.classList.remove('flex-row', 'justify-between', 'p-6', 'h-20');
+                    sidebarHeader.classList.add('flex-col', 'justify-center', 'gap-4', 'p-4', 'h-32');
+                }
+
+                // Hide Text
+                navTexts.forEach(el => el.classList.add('opacity-0', 'w-0', 'hidden'));
+
+                // Logo Switch
+                if (logoFull) logoFull.classList.add('hidden');
+                if (logoCollapsed) logoCollapsed.classList.remove('hidden');
+
+                // Icon
+                if (collapseIcon) collapseIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>'; // Double arrow right
+            } else {
+                // Widths
+                sidebar.classList.add('w-64');
+                sidebar.classList.remove('w-20');
+                mainContent.classList.add('md:ml-64');
+                mainContent.classList.remove('md:ml-20');
+
+                // Header Layout: Reset
+                if (sidebarHeader) {
+                    sidebarHeader.classList.add('flex-row', 'justify-between', 'p-6', 'h-20');
+                    sidebarHeader.classList.remove('flex-col', 'justify-center', 'gap-4', 'p-4', 'h-32');
+                }
+
+                // Show Text
+                navTexts.forEach(el => {
+                    el.classList.remove('opacity-0', 'w-0', 'hidden');
+                });
+
+                // Logo Switch
+                if (logoFull) logoFull.classList.remove('hidden');
+                if (logoCollapsed) logoCollapsed.classList.add('hidden');
+
+                // Icon
+                if (collapseIcon) collapseIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>'; // Double arrow left
+            }
+        }
+
+        function toggleSidebar() {
+            isCollapsed = !isCollapsed;
+            localStorage.setItem('sidebarState', isCollapsed ? 'collapsed' : 'expanded');
+            updateUI();
+        }
+
+        // Initial Run
+        updateUI();
+
+        function toggleMobileMenu() {
+            sidebar.classList.toggle('-translate-x-full');
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('glass-theme');
+            const icon = document.getElementById('themeIcon');
+            // Basic persistence
+            if (document.body.classList.contains('glass-theme')) {
+                localStorage.setItem('theme', 'glass');
+                // Sun Icon
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />';
+            } else {
+                localStorage.setItem('theme', 'dark');
+                // Moon Icon
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />';
+            }
+        }
+
+        // Init Theme
+        if (localStorage.getItem('theme') === 'glass') {
+            document.body.classList.add('glass-theme');
+            // Update icon initially if glass
+            const icon = document.getElementById('themeIcon');
+            if (icon) icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />';
+        }
     </script>
 </body>
 

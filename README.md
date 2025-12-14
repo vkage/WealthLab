@@ -51,11 +51,11 @@
     ```
 
 4.  **Database Configuration**
-    -   Copy the example environment file:
+    -   Copy the example configuration file:
         ```bash
-        cp .db.example .env
+        cp .db.example mysql.db
         ```
-    -   Edit `.env` with your database credentials (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME).
+    -   Edit `mysql.db` with your database credentials (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME).
 
 5.  **Initialize Database**
     ```bash

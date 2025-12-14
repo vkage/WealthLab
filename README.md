@@ -4,7 +4,12 @@
 
 **Advanced Financial Analysis & Portfolio Management System**
 
-![Dashboard Preview](static/dashboard.png)
+![Dashboard Preview](static/screenshots/dashboard_ui.png)
+
+<div align="center">
+  <img src="static/screenshots/portfolio_ui.png" width="48%" />
+  <img src="static/screenshots/watchlist_ui.png" width="48%" />
+</div>
 
 </div>
 

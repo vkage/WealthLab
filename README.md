@@ -32,8 +32,8 @@
 
 1.  **Clone the Repository**
     ```bash
-    git clone https://github.com/vkage/Wealth_Lab.git
-    cd Wealth_Lab
+    git clone https://github.com/vkage/WealthLab.git
+    cd WealthLab
     ```
 
 2.  **Set Up Virtual Environment** (Recommended)

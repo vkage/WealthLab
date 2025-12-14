@@ -70,3 +70,9 @@ class AnalysisCache(Base):
     strategy_name = Column(String(50), primary_key=True)
     result_json = Column(JSON)
     last_updated = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+class Watchlist(Base):
+    __tablename__ = 'watchlist'
+    
+    ticker = Column(String(20), primary_key=True)
+    created_at = Column(DateTime, server_default=func.now())

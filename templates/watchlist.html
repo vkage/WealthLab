@@ -1,0 +1,199 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-8">
+
+    <!-- Header / Add Stock -->
+    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div>
+            <h2 class="text-3xl font-bold text-white">Watchlist</h2>
+            <p class="text-gray-400">Track key momentum stocks and their upside potential.</p>
+        </div>
+
+        <div class="flex flex-col w-full md:w-96">
+            <div class="flex gap-2">
+                <input type="text" id="watchInput" placeholder="Enter Ticker (e.g. TATASTEEL)"
+                    class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500 uppercase">
+                <button onclick="addToWatchlist()"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl transition font-bold">
+                    Add
+                </button>
+            </div>
+            <p id="addError" class="text-red-500 text-sm mt-2 hidden"></p>
+        </div>
+    </div>
+
+    <!-- Watchlist Table -->
+    <div class="glass-panel rounded-2xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="bg-gray-800/50 text-left cursor-pointer">
+                        <th class="p-4 text-gray-400 font-medium text-sm hover:text-white transition"
+                            onclick="sortWatchlist(0)">Ticker ⇅</th>
+                        <th class="p-4 text-gray-400 font-medium text-sm text-right hover:text-white transition"
+                            onclick="sortWatchlist(1)">Price ⇅</th>
+                        <th class="p-4 text-gray-400 font-medium text-sm text-center hover:text-white transition"
+                            onclick="sortWatchlist(2)">Momentum Health ⇅</th>
+                        <th class="p-4 text-gray-400 font-medium text-sm text-center hover:text-white transition"
+                            onclick="sortWatchlist(3)">Action ⇅</th>
+                        <th class="p-4 text-gray-400 font-medium text-sm text-right hover:text-white transition"
+                            onclick="sortWatchlist(4)">Upside Potential ⇅</th>
+                        <th class="p-4 text-gray-400 font-medium text-sm text-center">Manage</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700" id="watchlistBody">
+                    {% if stocks %}
+                    {% for stock in stocks %}
+                    <tr class="hover:bg-white/5 transition group">
+                        <td class="p-4">
+                            <span class="font-bold text-white text-lg">{{ stock.ticker }}</span>
+                        </td>
+                        <td class="p-4 text-right" data-value="{{ stock.price }}">
+                            <span class="font-mono text-gray-300">₹{{ "{:,.2f}".format(stock.price) }}</span>
+                        </td>
+                        <td class="p-4 text-center">
+                            <span class="font-bold {{ stock.health_class }}">{{ stock.health }}</span>
+                        </td>
+                        <td class="p-4 text-center">
+                            <span class="px-3 py-1 rounded text-xs font-bold {{ stock.action_class }}">
+                                {{ stock.action }}
+                            </span>
+                        </td>
+                        <td class="p-4 text-right"
+                            data-value="{{ stock.upside.split('%')[0].replace('+', '').replace('Blue Sky', '9999').strip() }}">
+                            <span class="font-mono font-bold text-lg {{ stock.upside_class }}">
+                                {{ stock.upside|safe }}
+                            </span>
+                        </td>
+                        <td class="p-4 text-center">
+                            <div class="flex justify-center items-center space-x-3">
+                                <a href="/?q={{ stock.ticker }}"
+                                    class="text-blue-400 hover:text-blue-300 text-sm font-medium" title="Analyze">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                                        </path>
+                                    </svg>
+                                </a>
+                                <button onclick="removeFromWatchlist('{{ stock.ticker }}')"
+                                    class="text-gray-400 hover:text-red-500" title="Remove">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                        </path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="p-8 text-center text-gray-500">
+                            Your watchlist is empty. Add stocks to start tracking.
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function addToWatchlist() {
+        const input = document.getElementById('watchInput');
+        const errElem = document.getElementById('addError');
+        const ticker = input.value.trim();
+
+        errElem.classList.add('hidden');
+        errElem.innerText = "";
+
+        if (!ticker) return;
+
+        const btn = document.querySelector('button[onclick="addToWatchlist()"]');
+        const originalText = btn.innerText;
+        btn.innerText = "...";
+        btn.disabled = true;
+
+        try {
+            const res = await fetch('/api/watchlist/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ticker: ticker })
+            });
+            const data = await res.json();
+            if (data.success) {
+                window.location.reload();
+            } else {
+                errElem.innerText = data.error || "Unknown error";
+                errElem.classList.remove('hidden');
+            }
+        } catch (e) {
+            errElem.innerText = "Request failed";
+            errElem.classList.remove('hidden');
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    async function removeFromWatchlist(ticker) {
+        if (!confirm(`Remove ${ticker} from Watchlist?`)) return;
+
+        try {
+            const res = await fetch('/api/watchlist/remove', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ticker: ticker })
+            });
+            const data = await res.json();
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert("Error: " + (data.error || "Unknown"));
+            }
+        } catch (e) {
+            alert("Request failed");
+        }
+    }
+
+    let sortDir = 1;
+    function sortWatchlist(n) {
+        const table = document.querySelector("table");
+        const tbody = document.getElementById("watchlistBody");
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+        if (rows.length <= 1) return;
+
+        sortDir *= -1;
+
+        rows.sort((a, b) => {
+            const cellA = a.getElementsByTagName("td")[n];
+            const cellB = b.getElementsByTagName("td")[n];
+
+            if (!cellA || !cellB) return 0;
+
+            let valA = cellA.getAttribute('data-value') || cellA.innerText.trim();
+            let valB = cellB.getAttribute('data-value') || cellB.innerText.trim();
+
+            const numA = parseFloat(valA.replace(/[^0-9.-]+/g, ""));
+            const numB = parseFloat(valB.replace(/[^0-9.-]+/g, ""));
+
+            if (!isNaN(numA) && !isNaN(numB)) {
+                return (numA - numB) * sortDir;
+            }
+            return valA.localeCompare(valB) * sortDir;
+        });
+
+        rows.forEach(row => tbody.appendChild(row));
+    }
+
+    // Allow Enter key
+    document.getElementById('watchInput').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            addToWatchlist();
+        }
+    });
+</script>
+{% endblock %}

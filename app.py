@@ -7,6 +7,7 @@ import os
 import threading
 
 from utils.logger import setup_logger
+from utils.db import get_db
 
 app = Flask(__name__)
 logger = setup_logger('app')
@@ -144,11 +145,195 @@ def remove_stock():
     pid = data.get('portfolio_id', 1)
     success = portfolio_mgr.remove_stock(data['ticker'], portfolio_id=pid)
     return jsonify({"success": success})
-@app.route('/suggest')
-def suggest_ticker():
-    query = request.args.get('q', '').upper()
-    suggestions = [t for t in NSE_TICKERS if query in t][:10] # Limit to 10
-    return jsonify(suggestions)
+@app.route('/watchlist')
+def watchlist_view():
+    db = get_db()
+    session = db.get_db_session()
+    
+    watchlist_data = []
+    try:
+        from models import Watchlist
+        # Fetch all tickers
+        tickers = [r.ticker for r in session.query(Watchlist).all()]
+        
+        # Analyze each
+        for t in tickers:
+            try:
+                res = manager.analyze_ticker(t)
+                
+                # Extract Key Metrics
+                price = res.get('price', 0)
+                summary = res.get('summary', {})
+                strategies = res.get('strategies', {})
+                
+                min_res = strategies.get('Minervini Trend Template', {})
+                min_status = min_res.get('status', 'FAIL')
+                
+                # Action & Momentum Health
+                if min_status == 'PASS':
+                    comp_health = "Strong Buy"
+                    action = "BUY"
+                    health_class = "text-green-400"
+                    action_class = "bg-green-600 text-white"
+                else:
+                    # Check if it's mixed or weak (reusing logic or simple check)
+                    # For now simplifed:
+                    comp_health = "Weak"
+                    action = "AVOID"
+                    health_class = "text-red-400"
+                    action_class = "bg-red-600 text-white"
+                    
+                # Upside Calculation
+                upside_txt = "N/A"
+                upside_class = "text-gray-500"
+                target_type = "-"
+                
+                # Only calc upside if decent health (or strict rule?)
+                # User said: "If Momentum Health is PASS ... Otherwise N/A or Avoid" (Initial)
+                # Updated Plan: Always show selection rule?
+                # "Selection Rule: If price within 5% of 52W High..."
+                
+                # Let's get data for 52W High
+                # Minervini details usually have it, or metrics
+                metrics = min_res.get('metrics', {})
+                # We need raw data if metrics don't have 52W High. 
+                # Minervini metrics in `minervini.py` currently returns Price, RSI, SMA_50, Pivot.
+                # It does NOT return 52W High explicitly in metrics dict.
+                # However, we can re-analyze or fetch. 
+                # Optimization: `manager.analyze_ticker` fetches data. We could modify Minervini to return it, 
+                # or just fetch here if efficiency isn't huge issue (it is cached by manager?). 
+                # Actually manager implementation creates fresh `fetch_stock_data`.
+                
+                # Hack: Parse 52W High from details string if present? No, unreliable.
+                # Better: Access the `data` used in strategy? Strategy doesn't expose it.
+                # Quick Fix: Fetch single point data or leverage the fact we can calculate it?
+                # Let's trust `min_res['chart_json']`? No.
+                
+                # We will fetch basics again or update Minervini strategy.
+                # Updating Strategy is cleaner but requires editing another file.
+                # For now, let's just fetch history for 1y to get 52W High quickly.
+                # (Or since we just analyzed it, maybe we update Minervini.py to include 52W High/Low in metrics)
+                
+                # Let's assume we update Minervini.py in next step or use separate fetch.
+                # I'll stick to separate fetch for minimal invasion now (or update strategy which is better).
+                # Actually, I will update Minervini.py to return 52W High in metrics. 
+                # But I can't do that effectively in this single tool call if I didn't plan it.
+                # I'll use `utils.data_loader` here to get 52W High.
+                from utils.data_loader import fetch_stock_data
+                df = fetch_stock_data(t, period="1y")
+                
+                if df is not None and not df.empty:
+                    high_52 = df['High'].max()
+                    current = df['Close'].iloc[-1]
+                    pivot = df['High'].iloc[-20:].max()
+                    
+                    # Logic
+                    # Secondary Target (Minervini)
+                    min_target = pivot * 1.20
+                    
+                    # Selection Rule
+                    # If current price is within 5% of (or above) 52-Week High
+                    is_near_high = current >= (high_52 * 0.95)
+                    
+                    if min_status == 'PASS':
+                        if is_near_high:
+                             target = min_target
+                             target_label = "Momentum (Pivot+20%)"
+                        else:
+                             target = high_52
+                             target_label = "Resistance (52W High)"
+                             
+                        # Calculate Upside
+                        if target > current:
+                            pot = ((target - current) / current) * 100
+                            upside_txt = f"+{pot:.1f}%"
+                            upside_class = "text-green-400"
+                        elif target == current:
+                             upside_txt = "0%"
+                        else:
+                             upside_txt = "Blue Sky"
+                             upside_class = "text-blue-400"
+                        
+                        # Formatting
+                        upside_txt = f"{upside_txt} <span class='text-xs text-gray-500 block'>{target_label}</span>"
+                    else:
+                        upside_txt = "-"
+                        upside_class = "text-gray-600"
+
+                watchlist_data.append({
+                    "ticker": t,
+                    "price": price,
+                    "health": comp_health,
+                    "health_class": health_class,
+                    "action": action,
+                    "action_class": action_class,
+                    "upside": upside_txt,
+                    "upside_class": upside_class
+                })
+
+            except Exception as e:
+                print(f"Error processing {t}: {e}")
+                
+    finally:
+        db.close_session()
+
+    return render_template('watchlist.html', stocks=watchlist_data)
+
+@app.route('/api/watchlist/add', methods=['POST'])
+def add_watchlist():
+    data = request.json
+    ticker = data.get('ticker', '').strip().upper()
+    if not ticker: return jsonify({"success": False, "error": "No ticker"})
+    
+    # Correction
+    if not (ticker.endswith(".NS") or ticker.endswith(".BO") or ticker.startswith("^")):
+        ticker += ".NS"
+
+    # VALIDATION STEP
+    try:
+        import yfinance as yf
+        # Check if we can fetch recent data
+        # 'period="1mo"' is light enough. If empty, it's likely invalid/delisted.
+        df = yf.download(ticker, period="5d", progress=False)
+        if df is None or df.empty:
+             return jsonify({"success": False, "error": f"Invalid or delisted ticker: {ticker}"})
+    except Exception as e:
+        return jsonify({"success": False, "error": f"Failed to validate ticker: {str(e)}"})
+
+    db = get_db()
+    session = db.get_db_session()
+    try:
+        from models import Watchlist
+        # Check exist
+        if not session.query(Watchlist).filter_by(ticker=ticker).first():
+            new_item = Watchlist(ticker=ticker)
+            session.add(new_item)
+            session.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+    finally:
+        db.close_session()
+
+@app.route('/api/watchlist/remove', methods=['POST'])
+def remove_watchlist():
+    data = request.json
+    ticker = data.get('ticker')
+    
+    db = get_db()
+    session = db.get_db_session()
+    try:
+        from models import Watchlist
+        item = session.query(Watchlist).filter_by(ticker=ticker).first()
+        if item:
+            session.delete(item)
+            session.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+    finally:
+        db.close_session()
+
 
 if __name__ == '__main__':
     print("Starting Momentum Analysis App...")
